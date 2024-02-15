@@ -28,6 +28,3 @@ The order of priority is as follows.
 
 I felt like it. I didn't want the code to get lost.
 
-## Why mention other projects? Shouldn't the code be self-contained?
-
-Go fork yourself a copy of the repository and remove whatever you desire.
