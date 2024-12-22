@@ -1,12 +1,17 @@
 # FOUNDATION
 
-Some asyncio and kivy foundational routines for other projects.
+This repository contains foundational routines in asyncio and Kivy intended 
+as building blocks for more complex projects. The examples demonstrate asyncio 
+patterns combined with Kivy for GUI applications, with a particular emphasis 
+on handling asynchronous tasks and user interfaces.
 
-- `asyncio_cancellable_coroutines.py` runs well and exits cleanly under Windows, WSL2 Ubuntu, and Raspian.
+- `asyncio_cancellable_coroutines.py`: Demonstrates how to implement cancellable coroutines in asyncio, ensuring clean exits across various environments including Windows, WSL2 Ubuntu, and Raspbian. Ideal for tasks requiring graceful shutdowns.
 
-- `asyncio_coroutines.py` runs well, but doesn't exit as cleanly under Windows as the previous code.
+- `asyncio_coroutines.py`: Showcases basic asyncio coroutine usage. While it runs well across platforms, it may not exit as cleanly on Windows, highlighting differences in asyncio behavior across environments.
 
-- `asyncio_coroutines_with_sigint.py` is incompatible with Windows, which does not support signal.
+- `asyncio_coroutines_with_sigint.py`: Explores handling SIGINT signals with asyncio, making it incompatible with Windows due to its different signal handling mechanisms. Useful for understanding asyncio's interaction with system signals on Unix-like systems.
+
+
 
 ## What is this code for?
 
@@ -24,7 +29,4 @@ The order of priority is as follows.
 3. user input, one character at a time (the msg buffer is advances), which takes priority over
 4. AT commands, which are dequeued from an asyncio queue, provided waitForReply is False.
 
-## Why make a repository out of it?
-
-I felt like it. I didn't want the code to get lost.
 
