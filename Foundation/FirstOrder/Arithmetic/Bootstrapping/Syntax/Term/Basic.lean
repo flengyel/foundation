@@ -617,6 +617,76 @@ def blueprint : Language.TermRec.Blueprint 0 where
   fvar := .mkSigma “y x. y = 0”
   func := .mkSigma “y k f v v'. !listMaxDef y v'”
 
+omit [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] in
+def constructionFuncAssignment (v : Fin 5 → V) : Fin 2 → V :=
+  ![v 0, v 4]
+
+omit [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] in
+lemma constructionFuncTerms_val (v : Fin 5 → V) :
+    FirstOrder.Semiterm.val v Empty.elim ∘
+        ((![FirstOrder.Semiterm.bvar 0, FirstOrder.Semiterm.bvar 4]) :
+          Fin 2 → ArithmeticSemiterm Empty 5) =
+      constructionFuncAssignment v := by
+  apply Fin.funext_two
+  · rfl
+  · rfl
+  · intro i
+    exact Fin.elim0 i
+
+omit [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] in
+lemma constructionFuncSubstitution_eval (v : Fin 5 → V) :
+    (FirstOrder.Semiformula.Evalb v)
+        ((↑Arithmetic.listMaxDef : ArithmeticSemisentence 2) ⇜
+          ((![FirstOrder.Semiterm.bvar 0, FirstOrder.Semiterm.bvar 4]) :
+            Fin 2 → ArithmeticSemiterm Empty 5)) ↔
+      (FirstOrder.Semiformula.Evalb (constructionFuncAssignment v))
+        (↑Arithmetic.listMaxDef : ArithmeticSemisentence 2) :=
+  Iff.trans
+    (FirstOrder.Semiformula.eval_substs
+      ((![FirstOrder.Semiterm.bvar 0, FirstOrder.Semiterm.bvar 4]) :
+        Fin 2 → ArithmeticSemiterm Empty 5)
+      (↑Arithmetic.listMaxDef : ArithmeticSemisentence 2))
+    (Iff.of_eq (congrArg
+      (fun e ↦ (FirstOrder.Semiformula.Evalb e)
+        (↑Arithmetic.listMaxDef : ArithmeticSemisentence 2))
+      (constructionFuncTerms_val v)))
+
+lemma constructionFuncResult (v : Fin 5 → V) :
+    (FirstOrder.Semiformula.Evalb (constructionFuncAssignment v))
+        (↑Arithmetic.listMaxDef : ArithmeticSemisentence 2) ↔
+      v 0 = (fun u : Fin (0 + 1 + 1 + 1 + 1) → V ↦
+        Arithmetic.listMax (u 3))
+        (fun x : Fin (0 + 1 + 1 + 1 + 1) ↦ v x.succ) := by
+  have hDefined :
+      (FirstOrder.Semiformula.Evalb (constructionFuncAssignment v))
+          (↑Arithmetic.listMaxDef : ArithmeticSemisentence 2) ↔
+        constructionFuncAssignment v 0 =
+          (fun u : Fin 1 → V ↦ Arithmetic.listMax (u 0))
+            (fun x : Fin 1 ↦ constructionFuncAssignment v x.succ) :=
+    Arithmetic.listMax_defined.iff
+  have hResult :
+      constructionFuncAssignment v 0 =
+          (fun u : Fin 1 → V ↦ Arithmetic.listMax (u 0))
+            (fun x : Fin 1 ↦ constructionFuncAssignment v x.succ) ↔
+        v 0 = (fun u : Fin (0 + 1 + 1 + 1 + 1) → V ↦
+          Arithmetic.listMax (u 3))
+          (fun x : Fin (0 + 1 + 1 + 1 + 1) ↦ v x.succ) := by
+    change (v 0 = Arithmetic.listMax (v 4)) ↔
+      (v 0 = Arithmetic.listMax (v 4))
+    exact Iff.rfl
+  exact hDefined.trans hResult
+
+theorem constructionFuncDefined :
+    𝚺₁.DefinedFunction
+      (fun v : Fin (0 + 1 + 1 + 1 + 1) → V ↦ Arithmetic.listMax (v 3))
+      blueprint.func :=
+  .mk fun v ↦ by
+    unfold blueprint
+    dsimp only [Language.TermRec.Blueprint.func]
+    rw [HierarchySymbol.Semiformula.val_mkSigma]
+    exact (constructionFuncSubstitution_eval v).trans
+      (constructionFuncResult v)
+
 variable (L)
 
 noncomputable def construction : Language.TermRec.Construction V blueprint where
@@ -625,7 +695,7 @@ noncomputable def construction : Language.TermRec.Construction V blueprint where
   func (_ _ _ _ v') := listMax v'
   bvar_defined := .mk fun v ↦ by simp [blueprint]
   fvar_defined := .mk fun v ↦ by simp [blueprint]
-  func_defined := .mk fun v ↦ by simp [blueprint]
+  func_defined := constructionFuncDefined
 
 end IsUTerm.BV
 
